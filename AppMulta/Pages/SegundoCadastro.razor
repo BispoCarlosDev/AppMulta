@@ -1,0 +1,144 @@
+﻿@page "/segundoCadastro"
+@using AppMulta.Models;
+@using AppMulta.Controllers;
+@inject VeiculoController veiculoController
+@inject MultaController multaController
+@inject NavigationManager navegacao
+
+<h3>REGISTRO DE MULTAS DE VEÍCULOS COM CADASTRO</h3>
+
+<div class="container">
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: darkgreen"></nav>
+
+    <label for="veiculo" class="form-label">CARROS CADASTRADOS:</label>
+    <select @onchange="SelecionarVeiculo" class="form-select" aria-label="Selecione um carro">
+        <option selected>Selecione uma placa</option>
+        @foreach (var item in listaVeiculos)
+        {
+            <option value=@item.Id>@item.Placa</option>
+        }
+    </select>
+
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: darkgreen"></nav>
+
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">MODELO:</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1">
+    </div>
+
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">MARCA:</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1">
+    </div>
+
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">PLACA:</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1">
+    </div>
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: darkgreen"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+    @*###################################################################*@
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">DESCRIÇÃO:</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">VALOR :</label>
+        <input type="number" class="form-control" id="exampleFormControlInput1">
+    </div>
+    @if (enabledButton)
+    {
+        <button type="button" class="btn btn-primary" @onclick="AddMulta">ADICIONAR</button>
+        <button type="button" class="btn btn-warning" @onclick="Cancelar">CANCELAR</button>
+        <button type="button" class="btn btn-success" @onclick="Salvar">SALVAR</button>
+    }
+    else
+    {
+        <div class="alert alert-success" role="alert">
+            Salvo com Sucesso;
+        </div>
+        <button type="button" class="btn btn-primary" @onclick="NovoRegistro">NOVO REGISTRO</button>
+    }
+
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: darkgreen"></nav>
+
+    <nav class="navbar navbar-light" style="background-color: white"></nav>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Descrição:</th>
+                <th>Valor:</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var multa in listaMultas)
+            {
+                <tr>
+                    <td>@multa.Descricao</td>
+                    <td>@multa.ValorMulta</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    public List<Multa> listaMultas = new List<Multa>(); //Lista de multas
+    public List<Veiculo> listaVeiculos = new List<Veiculo>(); //Lista de Veiculos
+    public Veiculo? veiculo = new Veiculo();
+    private bool enabledButton = true;
+    private bool campoBloqueado = false;
+    public string? Descricao { get; set; }
+    public decimal? ValorMulta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var lista = await veiculoController.ListaDeVeiculos();
+        listaVeiculos = lista;
+    }
+
+    public void SelecionarVeiculo(ChangeEventArgs e)
+    {
+        int id = Convert.ToInt32(e.Value);
+        veiculo = listaVeiculos.FirstOrDefault(v => v.Id == id);
+    }
+
+    public void AddMulta()
+    {
+        Multa multa = new Multa();
+        multa.Descricao = Descricao;
+        multa.ValorMulta = ValorMulta;
+        multa.Veiculo = veiculo;
+        listaMultas.Add(multa);
+        Descricao = null;ValorMulta = null;
+    }
+
+    private async Task Salvar()
+    {
+        await multaController.AddRanger(listaMultas);
+        await multaController.Salvar();
+        enabledButton = false; campoBloqueado = true;
+    }
+
+    public void Cancelar()
+    {
+        navegacao.NavigateTo("/segundoCadastro", forceLoad: true);
+    }
+
+    public void NovoRegistro()
+    {
+        navegacao.NavigateTo("/primeiroCadastro", forceLoad: true);
+    }
+
+}
